@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,10 +18,13 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.ArrayList;
+
 public class UserActivity extends AppCompatActivity {
 
     EditText nameBox;
     EditText yearBox;
+    Spinner countryBox;
     Button delButton;
     Button saveButton;
 
@@ -41,11 +46,14 @@ public class UserActivity extends AppCompatActivity {
         });
         nameBox = findViewById(R.id.name);
         yearBox = findViewById(R.id.year);
+        countryBox = findViewById(R.id.country);
         delButton = findViewById(R.id.deleteButton);
         saveButton = findViewById(R.id.saveButton);
 
         sqlHelper = new DatabaseHelper(this);
         db = sqlHelper.getWritableDatabase();
+
+        loadCountrySpinner();
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -53,11 +61,19 @@ public class UserActivity extends AppCompatActivity {
         }
 
         if (userId > 0) {
-            userCursor = db.rawQuery("select * from " + DatabaseHelper.TABLE + " where " +
+            // Загружаем данные
+            userCursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " +
                     DatabaseHelper.COLUMN_ID + "=?", new String[]{String.valueOf(userId)});
             if (userCursor.moveToFirst()) {
-                nameBox.setText(userCursor.getString(1));
-                yearBox.setText(String.valueOf(userCursor.getInt(2)));
+                nameBox.setText(userCursor.getString(1));  // name
+                yearBox.setText(String.valueOf(userCursor.getInt(2)));  // year
+
+                String userCountry = userCursor.getString(3);  // country
+                ArrayAdapter<String> adapter = (ArrayAdapter<String>) countryBox.getAdapter();
+                int position = adapter.getPosition(userCountry);
+                if (position >= 0) {
+                    countryBox.setSelection(position);
+                }
             } else {
                 Toast.makeText(this, "Запись не найдена", Toast.LENGTH_SHORT).show();
                 finish();
@@ -66,6 +82,25 @@ public class UserActivity extends AppCompatActivity {
         } else {
             delButton.setVisibility(View.GONE);
         }
+    }
+
+    private void loadCountrySpinner() {
+        Cursor cursor = db.rawQuery("SELECT " + DatabaseHelper.COLUMN_COUNTRY_NAME +
+                " FROM " + DatabaseHelper.TABLE_COUNTRIES +
+                " ORDER BY " + DatabaseHelper.COLUMN_COUNTRY_NAME, null);
+
+        ArrayList<String> countries = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                countries.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, countries);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        countryBox.setAdapter(adapter);
     }
     public void save(View view) {
         String name = nameBox.getText().toString().trim();
@@ -85,19 +120,20 @@ public class UserActivity extends AppCompatActivity {
         }
 
         ContentValues cv = new ContentValues();
-        cv.put(DatabaseHelper.COLUMN_NAME, nameBox.getText().toString());
-        cv.put(DatabaseHelper.COLUMN_YEAR, Integer.parseInt(yearBox.getText().toString()));
+        cv.put(DatabaseHelper.COLUMN_NAME, name);
+        cv.put(DatabaseHelper.COLUMN_YEAR, year);
+        cv.put(DatabaseHelper.COLUMN_COUNTRY, countryBox.getSelectedItem().toString());
 
         if (userId > 0) {
-            db.update(DatabaseHelper.TABLE, cv, DatabaseHelper.COLUMN_ID + "=" + userId, null);
+            db.update(DatabaseHelper.TABLE_USERS, cv, DatabaseHelper.COLUMN_ID + "=" + userId, null);
         } else {
-            db.insert(DatabaseHelper.TABLE, null, cv);
+            db.insert(DatabaseHelper.TABLE_USERS, null, cv);
         }
         goHome();
     }
 
     public void delete(View view) {
-        db.delete(DatabaseHelper.TABLE, "_id = ?", new String[]{String.valueOf(userId)});
+        db.delete(DatabaseHelper.TABLE_USERS, "_id = ?", new String[]{String.valueOf(userId)});
         goHome();
     }
 

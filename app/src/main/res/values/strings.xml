@@ -12,5 +12,11 @@
     <string name="add_to_database">Добавить в базу данных</string>
 
     <string name="save">Сохранить</string>
-    <string name="delete">Удалит</string>
+    <string name="delete">Удалить</string>
+
+    <string name="filter_country">Фильтр по стране:</string>
+    <string name="country">Страна:</string>
+    <string name="by_year_1">▲ По году</string>
+    <string name="by_year_2">▼ По году</string>
+    <string name="by_id">По ID</string>
 </resources>
