@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">pr17_rmp</string>
+    <string name="add">Add</string>
+    <string name="read">Read</string>
+    <string name="clear">Clear</string>
+
+
+    <string name="name">Имя:</string>
+    <string name="enter_name">Введите имя</string>
+    <string name="year_of_birth">Год рождения:</string>
+    <string name="enter_year">Введите год</string>
+    <string name="add_to_database">Добавить в базу данных</string>
+
+    <string name="save">Сохранить</string>
+    <string name="delete">Удалит</string>
+</resources>
